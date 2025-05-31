@@ -13,11 +13,13 @@ with DAG(
 ) as dag:
 
     upload_task = LocalFilesystemToWasbOperator(
-        task_id='upload_files',
-        file_path='/opt/airflow/data/claims.csv',            # Puedes usar glob
-        container_name='bronze',    # Nombre del container
-        # blob_name='demo/{{ ds }}/{{ basename(file_path) }}',
-        blob_name='claims.csv',  # Nombre del blob donde se guardará el archivo
-        wasb_conn_id='azureblob_wasb',              # Debe coincidir con tu Conn Id
-        create_container=True                     # Crea el contenedor si no existe
+    task_id='upload_files',
+    file_path='/opt/airflow/data/claims.csv',
+    container_name='bronze',
+    blob_name='claims/{{ ds }}/claims.csv',  # Particionado por fecha
+    wasb_conn_id='azureblob_wasb',
+    create_container=True,
+    retries=3,                               # Reintentos
+    retry_delay=timedelta(minutes=5),        # Delay entre reintentos
+    execution_timeout=timedelta(minutes=30)  # Timeout
     )
